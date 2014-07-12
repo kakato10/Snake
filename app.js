@@ -1,7 +1,11 @@
 var Point = function(xCoord, yCoord, size, context) {
-  this.draw = function() {
-    context.fillStyle = "green";
-    context.fillRect(xCoord * size, yCoord * size, 10, 10);
+  this.draw = function(color, image) {
+    if (image === undefined){
+      context.fillStyle = color || "blue";
+      context.fillRect(xCoord * size, yCoord * size, 10, 10);
+    } else {
+      context.drawImage(image, xCoord*size, yCoord*size, 10, 10);
+    }
   };
   this.getxCoord = function(){
     return xCoord;
@@ -38,6 +42,7 @@ var speeds = {
 
 
 $(document).ready(function(){
+
   var speed;
   var score = 0;
   var snakeBoard = document.getElementById("snakeBoard");
@@ -78,13 +83,15 @@ $(document).ready(function(){
       score:score
     }));
   };
-  
+
 
   var food = (function(context) {
+    var image = document.getElementById("food");
     var point = new Point(Math.round(((Math.random() * (snakeBoardHeight -1)) + 1)/10), Math.round(((Math.random() * (snakeBoardWidth -1)) + 1)/10) ,10, context);
 
     var draw = function() {
-      point.draw();
+
+      point.draw(undefined, image);
     };
 
     var changePosition = function() {
@@ -103,7 +110,7 @@ $(document).ready(function(){
   }(context));
 
   var snake = (function(context) {
-    
+
     var body = [];
     [1,2,3].forEach(function(i){
       body.push(new Point(i, 0, 10, context))
@@ -125,7 +132,7 @@ $(document).ready(function(){
       var colision = headToTale || outOfBoard;
       return colision;
     };
-    
+
     var resetSnake = function(){
       body = [];
       [1,2,3].forEach(function(i){
@@ -192,7 +199,7 @@ $(document).ready(function(){
       resetSnake: resetSnake
     };
   }(context));
-  
+
   var requestDifficulty = function() {
     context.font = "25px Arial";
     context.fillText("Please choose a difficulty!", 50, 200);
@@ -202,23 +209,25 @@ $(document).ready(function(){
     if (speed === undefined) {
       requestDifficulty();
     } else {
-      disableButtons();
-      gameLoop = setInterval(function() {
-      clearBoard();
-      snake.move();
-      if(snake.checkForColision()){
-        clearInterval(gameLoop);
-        context.font = "30px Arial";
-        context.fillText("GAME OVER!!!!!", 50, 200);
-        snake.resetSnake();
-        speed = undefined;
-        enableButtons();
-        
-      } else {
-      snake.eating();
-      snake.draw();
-      food.draw();
-      }}, speed);
+        disableButtons();
+        drawCurrentScore();
+        gameLoop = setInterval(function() {
+        context.clearRect(0, 0, snakeBoardWidth, snakeBoardHeight)
+        snake.move();
+        if(snake.checkForColision()){
+          clearInterval(gameLoop);
+          context.font = "30px Arial";
+          context.fillText("GAME OVER!!!!!", 50, 200);
+          snake.resetSnake();
+          speed = undefined;
+          enableButtons();
+
+        } else {
+        snake.eating();
+        snake.draw();
+        food.draw();
+        }
+      }, speed);
     }
   };
 
